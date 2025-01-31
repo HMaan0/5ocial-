@@ -71,7 +71,6 @@ export async function sharedPosts(
         const noMorePosts = posts.length < take;
 
         return {
-          // communityName: community.communityName,
           posts: postsWithUsernames,
           noMorePosts: noMorePosts ? "No more posts available" : null,
         };

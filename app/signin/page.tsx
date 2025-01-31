@@ -118,10 +118,6 @@ const Signin = () => {
 
           setError("Incorrect Otp please try again");
         } else {
-          // setShowOtpForm(true);
-          alert(
-            "If you are redirected to the home page instead of the feed, please refresh the page."
-          );
           getSession();
           const session = await getUser();
 

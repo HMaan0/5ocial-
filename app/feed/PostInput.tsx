@@ -7,6 +7,8 @@ import Line from "../components/Line/Line";
 import { useSession } from "next-auth/react";
 import PostFeatures from "../components/PostFeatures/PostFeatures";
 import Image from "next/image";
+import { useSetRecoilState } from "recoil";
+import { newPost } from "../store/atoms/newPost";
 
 const PostInput = () => {
   const [imageUrl, setImageUrl] = useState("");
@@ -25,7 +27,7 @@ const PostInput = () => {
     setText(e.target.value);
     autoResize();
   };
-
+  const setNewPost = useSetRecoilState(newPost);
   const autoResize = () => {
     const textarea = textareaRef.current;
     if (textarea) {
@@ -63,7 +65,7 @@ const PostInput = () => {
         setText("");
         cancelImage();
       }
-      router.push("/");
+      setNewPost((prev) => !prev);
     } catch (error) {
       console.error("Error submitting post:", error);
       setError("Failed to submit the post. Please try again.");

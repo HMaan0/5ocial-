@@ -13,6 +13,8 @@ import { IconPointFilled, IconUsersGroup } from "@tabler/icons-react";
 import NoContent from "../components/NoContent/NoContent";
 import Popup from "../components/Popup/Popup";
 import { format } from "date-fns";
+import { useRecoilValue } from "recoil";
+import { newPost } from "../store/atoms/newPost";
 type Post = {
   username: string | null | undefined;
   postId: string;
@@ -35,6 +37,7 @@ const SubContent = ({
   const [sortOption, setSortOption] = useState<string>("");
   const [communityName, setCommunityName] = useState<string | undefined>("");
   const [hasMorePosts, setHasMorePosts] = useState(true);
+  const newPosted = useRecoilValue(newPost);
   const take = 4;
 
   const loadMorePosts = async () => {
@@ -93,7 +96,7 @@ const SubContent = ({
       setIsLoading(false);
     }
     getPosts();
-  }, [sortOption]);
+  }, [sortOption, newPosted]);
 
   useEffect(() => {
     window.addEventListener("scroll", onScroll);

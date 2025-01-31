@@ -13,6 +13,8 @@ import Dropdown from "../../../components/Dropdown/Dropdown";
 import NoContent from "../../../components/NoContent/NoContent";
 import Popup from "../../../components/Popup/Popup";
 import { format } from "date-fns";
+import { useRecoilValue } from "recoil";
+import { newPost } from "../../../store/atoms/newPost";
 
 type community = {
   communityId: string;
@@ -42,10 +44,12 @@ const SharedPosts = ({
   const [posts, setPosts] = useState<Post>([]);
   const [sortOption, setSortOption] = useState<string>("");
   const [communityName, setCommunityName] = useState<string | undefined>("");
-
+  const [hasMorePosts, setHasMorePosts] = useState(true);
+  const newPosted = useRecoilValue(newPost);
   const take = 4;
 
   const loadMorePosts = async () => {
+    if (!hasMorePosts) return;
     setIsLoading(true);
 
     const skip = page * take;
@@ -62,13 +66,17 @@ const SharedPosts = ({
       setPosts((currentData) => [...currentData, ...res.posts]);
       setPage((currentPage) => currentPage + 1);
     }
+    if (res.noMorePosts) {
+      setHasMorePosts(false);
+    }
     setIsLoading(false);
   };
 
   const onScroll = async () => {
     if (
       window.innerHeight + window.scrollY >= document.body.offsetHeight - 100 &&
-      !isLoading
+      !isLoading &&
+      hasMorePosts
     ) {
       await loadMorePosts();
     }
@@ -78,18 +86,21 @@ const SharedPosts = ({
     setIsLoading(true);
     setPage(1);
     setPosts([]);
-
+    setHasMorePosts(true);
     async function getPosts() {
       const res = await sharedPosts(communityId, sortOption, 1, 0, take);
 
       if (res?.posts) {
         setPosts(res.posts);
       }
+      if (res?.noMorePosts) {
+        setHasMorePosts(false);
+      }
       setIsLoading(false);
     }
 
     getPosts();
-  }, [sortOption, communityId]);
+  }, [sortOption, communityId, newPosted]);
 
   useEffect(() => {
     window.addEventListener("scroll", onScroll);
@@ -147,7 +158,7 @@ const SharedPosts = ({
           !isLoading && <NoContent />
         )}
 
-        {isLoading && posts.length > 0 && (
+        {isLoading && posts.length > 0 && hasMorePosts && (
           <div className="w-full flex items-center justify-center p-10 h-40">
             <div
               className="text-theme-blue inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"
@@ -157,6 +168,11 @@ const SharedPosts = ({
                 Loading...
               </span>
             </div>
+          </div>
+        )}
+        {!hasMorePosts && (
+          <div className="w-full flex items-center justify-center text-gray-500">
+            No more posts available
           </div>
         )}
       </div>
@@ -172,7 +188,7 @@ function DateManipulation({ posts, userId }: { posts: Post; userId: string }) {
         const correctedDate = new Date(`${year}-${month}-${day}`);
         const formattedDate = format(correctedDate, "dd MMM");
         return (
-          <div className="" key={post.postId}>
+          <div key={post.postId}>
             <Card>
               <div className="mt-1">
                 <div className="flex gap-3 h-max justify-start mb-9">
