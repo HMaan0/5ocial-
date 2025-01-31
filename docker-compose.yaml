@@ -1,0 +1,12 @@
+version: "3.8"
+services:
+  backend:
+    image: social
+    container_name: backend_app
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "$DATABASE_URL"
+
+volumes:
+  backend_data:

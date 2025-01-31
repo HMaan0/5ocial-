@@ -1,0 +1,79 @@
+name: Build and Deploy to Docker Hub
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Out Repo
+        uses: actions/checkout@v2
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and Push Docker image
+        uses: docker/build-push-action@v2
+        with:
+          build-args: |
+            DATABASE_URL=${{secrets.DATABASE_URL}}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
+            NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
+            NEXT_PUBLIC_BASE_URL=${{secrets.NEXT_PUBLIC_BASE_URL}}
+            UPLOADTHING_SECRET=${{secrets.UPLOADTHING_SECRET}}
+            UPLOADTHING_APP_ID=${{secrets.UPLOADTHING_APP_ID}}
+            UPLOADTHING_TOKEN=${{secrets.UPLOADTHING_TOKEN}}
+            EMAIL_USER=${{secrets.EMAIL_USER}}
+            EMAIL_PASS=${{secrets.EMAIL_PASS}}
+            UPLOADTHING_URL=${{secrets.UPLOADTHING_URL}}
+          context: .
+          file: ./dockerfile
+          push: true
+          tags: harsh0maan/socialnetworkapp:latest
+        env:
+          JWT_SECRET: ${{secrets.JWT_SECRET}}
+          NEXTAUTH_SECRET: ${{secrets.NEXTAUTH_SECRET}}
+          NEXTAUTH_URL: ${{secrets.NEXTAUTH_URL}}
+          DATABASE_URL: ${{secrets.DATABASE_URL}}
+          NEXT_PUBLIC_BASE_URL: ${{secrets.NEXT_PUBLIC_BASE_URL}}
+          UPLOADTHING_SECRET: ${{secrets.UPLOADTHING_SECRET}}
+          UPLOADTHING_APP_ID: ${{secrets.UPLOADTHING_APP_ID}}
+          UPLOADTHING_TOKEN: ${{secrets.UPLOADTHING_TOKEN}}
+          EMAIL_USER: ${{secrets.EMAIL_USER}}
+          EMAIL_PASS: ${{secrets.EMAIL_PASS}}
+          UPLOADTHING_URL: ${{secrets.UPLOADTHING_URL}}
+
+      - name: Verify Pushed Image
+        run: docker pull harsh0maan/socialnetworkapp:latest
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            echo "Stopping existing container..."
+            sudo docker stop socialnetworkapp || true
+
+            echo "Removing existing container..."
+            sudo docker rm socialnetworkapp || true
+
+            echo "Pruning unused Docker objects..."
+            yes | sudo docker system prune -a
+
+            echo "Pulling the latest Docker image..."
+            sudo docker pull harsh0maan/socialnetworkapp:latest
+
+            echo "Starting new container..."
+            sudo docker run -d --name socialnetworkapp -p 3000:3000 harsh0maan/socialnetworkapp:latest
+
+            echo "Checking container logs..."
+            sudo docker logs socialnetworkapp

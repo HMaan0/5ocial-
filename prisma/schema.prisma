@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String      @id @default(uuid())
+  email      String      @unique
+  password   String      
+  username   String?     @unique
+  verified   Boolean     @default(false)
+  community  Community?  @relation(fields: [communityId], references: [communityId])
+  communityId String?
+  posts      Post[]
+  comments   Comment[] 
+  actions    Action[]
+  votes      Vote[]      
+  following  Following[]
+}
+
+model Community {
+  communityId   String   @id @default(uuid())
+  communityName String
+  users         User[]
+  posts         Post[]
+}
+
+model Post {
+  postId         String   @id @default(uuid())
+  content        String   
+  date           String
+  imageUrl       String?
+  user           User     @relation(fields: [userId], references: [id])
+  userId         String
+  community      Community @relation(fields: [communityId], references: [communityId])
+  communityId    String
+  shared         Boolean  @default(false)
+  sharedCommunity String?  
+  comments       Comment[]
+  action         Action[]
+  options        Option[] 
+}
+
+model Option {
+  optionId   String  @id @default(uuid())
+  text       String  
+  postId     String
+  post       Post    @relation(fields: [postId], references: [postId])
+  votes      Vote[]
+}
+
+model Vote {
+  voteId     String  @id @default(uuid())
+  userId     String
+  user       User    @relation(fields: [userId], references: [id])
+  optionId   String
+  option     Option  @relation(fields: [optionId], references: [optionId])
+}
+
+model Comment {
+  commentId String    @id @default(uuid())  
+  content   String    
+  post      Post      @relation(fields: [postId], references: [postId])
+  postId    String
+  userId    String    
+  user      User      @relation(fields: [userId], references: [id])
+  action    Action[]
+}
+
+model Action {
+  actionId  String      @id @default(uuid())
+  type      ActionType
+  post      Post?       @relation(fields: [postId], references: [postId])
+  postId    String?
+  comment   Comment?    @relation(fields: [commentId], references: [commentId])
+  commentId String?
+  user      User        @relation(fields: [userId], references: [id])
+  userId    String
+}
+
+enum ActionType {
+  LIKE 
+  DISLIKE
+}
+
+model Following {
+  Id           String  @id @default(uuid())
+  followingId  String  
+  user         User    @relation(fields: [userId], references: [id])
+  userId       String
+}
+
+model Otp{ 
+  Id          String   @id @default(uuid())
+  Otp         String   
+  Email       String
+}
