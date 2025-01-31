@@ -71,13 +71,15 @@ export async function sharedPosts(
         const noMorePosts = posts.length < take;
 
         return {
-          // communityName: community.communityName,
           posts: postsWithUsernames,
           noMorePosts: noMorePosts ? "No more posts available" : null,
         };
       } else {
+        const noMorePosts = posts.length < take;
+
         return {
           message: "Not Posts Yet!",
+          noMorePosts: noMorePosts ? "No more posts available" : null,
         };
       }
     } else {

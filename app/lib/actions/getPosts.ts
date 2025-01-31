@@ -77,7 +77,6 @@ export async function Posts(
           })
         );
 
-        // Check if the number of fetched posts is less than 'take'
         const noMorePosts = posts.length < take;
 
         return {
