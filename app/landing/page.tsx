@@ -219,7 +219,7 @@ function NavBar() {
               </Link>
             </div>
             <Link
-              href="https://github.com/harsh-deepsingh"
+              href="https://github.com/hmaan0"
               target="_blank"
               rel="noopener noreferrer"
             >
